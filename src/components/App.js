@@ -159,10 +159,11 @@ function FlightBookingPage() {
 
   const handleSubmitBooking = (e) => {
     e.preventDefault();
-    if (!name || !email || !phone) {
+    if (!name.trim() || !email.trim() || !phone.trim()) {
       setError('All fields are required.');
       return;
     }
+    setError('');
     dispatch(setBookingDetails({ name, email, phone }));
     navigate('/confirmation');
   };
@@ -173,7 +174,7 @@ function FlightBookingPage() {
       {selectedFlight && (
         <p>Selected: {selectedFlight.source} ➔ {selectedFlight.destination} ({selectedFlight.tripType})</p>
       )}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmitBooking}>
         <div>
           <input 
@@ -223,5 +224,40 @@ function ConfirmationPage() {
           <p><strong>Email:</strong> {bookingDetails.email}</p>
           <p><strong>Phone:</strong> {bookingDetails.phone}</p>
           {selectedFlight && (
-            <p><strong>Flight:</strong> {selectedFlight.source} to {selectedFlight.destination}</p>
+            <div>
+              <p><strong>Flight Details:</strong></p>
+              <p><strong>Source:</strong> {selectedFlight.source}</p>
+              <p><strong>Destination:</strong> {selectedFlight.destination}</p>
+              <p><strong>Date:</strong> {selectedFlight.date}</p>
+              <p><strong>Trip Type:</strong> {selectedFlight.tripType}</p>
+            </div>
           )}
+        </div>
+      ) : (
+        <p>No booking found.</p>
+      )}
+      <button className="confirmation" onClick={handleReturnHome}>
+        Return to Home
+      </button>
+    </div>
+  );
+}
+
+const App = () => {
+  return (
+    <Provider store={store}>
+      <BrowserRouter>
+        <div id="main">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/flight-search" element={<FlightSearchPage />} />
+            <Route path="/flight-booking" element={<FlightBookingPage />} />
+            <Route path="/confirmation" element={<ConfirmationPage />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </Provider>
+  );
+};
+
+export default App;
