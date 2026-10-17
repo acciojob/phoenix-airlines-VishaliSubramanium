@@ -4,6 +4,13 @@ import { configureStore, createSlice } from '@reduxjs/toolkit';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import './../styles/App.css';
 
+const allFlights = [
+  { id: 1, source: 'New York', destination: 'London', date: '2026-06-01', price: '$500', tripType: 'one-way' },
+  { id: 2, source: 'Los Angeles', destination: 'Tokyo', date: '2026-06-05', price: '$800', tripType: 'round-trip' },
+  { id: 3, source: 'Chicago', destination: 'Paris', date: '2026-06-10', price: '$650', tripType: 'one-way' },
+  { id: 4, source: 'New York', destination: 'London', date: '2026-06-15', price: '$550', tripType: 'round-trip' }
+];
+
 const flightSlice = createSlice({
   name: 'flights',
   initialState: {
@@ -11,20 +18,26 @@ const flightSlice = createSlice({
     source: '',
     destination: '',
     date: '',
-    flightsList: [
-      { id: 1, source: 'New York', destination: 'London', date: '2026-06-01', price: '$500', tripType: 'one-way' },
-      { id: 2, source: 'Los Angeles', destination: 'Tokyo', date: '2026-06-05', price: '$800', tripType: 'round-trip' },
-    ],
+    flightsList: [],
     selectedFlight: null,
     bookingDetails: { name: '', email: '', phone: '' },
     isConfirmed: false,
   },
   reducers: {
     setSearchParams: (state, action) => {
-      state.tripType = action.payload.tripType;
-      state.source = action.payload.source;
-      state.destination = action.payload.destination;
-      state.date = action.payload.date;
+      const { tripType, source, destination, date } = action.payload;
+      state.tripType = tripType;
+      state.source = source;
+      state.destination = destination;
+      state.date = date;
+      
+      state.flightsList = allFlights.filter(flight => {
+        const matchesSource = source ? flight.source.toLowerCase().includes(source.toLowerCase()) : true;
+        const matchesDestination = destination ? flight.destination.toLowerCase().includes(destination.toLowerCase()) : true;
+        const matchesDate = date ? flight.date === date : true;
+        const matchesTripType = flight.tripType === tripType;
+        return matchesSource && matchesDestination && matchesDate && matchesTripType;
+      });
     },
     setSelectedFlight: (state, action) => {
       state.selectedFlight = action.payload;
@@ -41,7 +54,7 @@ const flightSlice = createSlice({
   }
 });
 
-const { setSearchParams, setSelectedFlight, setBookingDetails, resetBooking } = flightSlice.actions;
+const { setSearchParams, setSelectedFlight, setBookingDetails } = flightSlice.actions;
 
 const store = configureStore({
   reducer: {
@@ -133,14 +146,18 @@ function FlightSearchPage() {
       {searched && (
         <div className="search-results">
           <h3>Available Flights</h3>
-          {stateData.flightsList.map((flight) => (
-            <div key={flight.id} className="flight-item" style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
-              <p>{flight.source} to {flight.destination} | Date: {flight.date} | {flight.price}</p>
-              <button className="book-flight" onClick={() => handleBookFlight(flight)}>
-                Book Flight
-              </button>
-            </div>
-          ))}
+          {stateData.flightsList.length > 0 ? (
+            stateData.flightsList.map((flight) => (
+              <div key={flight.id} className="flight-item" style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
+                <p>{flight.source} to {flight.destination} | Date: {flight.date} | {flight.price}</p>
+                <button className="book-flight" onClick={() => handleBookFlight(flight)}>
+                  Book Flight
+                </button>
+              </div>
+            ))
+          ) : (
+            <p>No flights found matching your criteria.</p>
+          )}
         </div>
       )}
     </div>
